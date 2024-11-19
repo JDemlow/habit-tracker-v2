@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import Modal from "../components/Modal";
 import HomeCard from "../components/HomeCard";
 
 const HomePage = () => {
   const [habits, setHabits] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const BACKEND_URL =
     import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
@@ -10,13 +12,11 @@ const HomePage = () => {
   useEffect(() => {
     const fetchHabits = async () => {
       try {
-        console.log("Fetching habits from:", `${BACKEND_URL}/habits`);
         const response = await fetch(`${BACKEND_URL}/habits`);
         if (!response.ok) {
           throw new Error(`Failed to fetch habits. Status: ${response.status}`);
         }
         const data = await response.json();
-        console.log("Fetched habits:", data);
         setHabits(data);
       } catch (error) {
         console.error("Error fetching habits:", error.message);
@@ -26,12 +26,7 @@ const HomePage = () => {
     fetchHabits();
   }, [BACKEND_URL]);
 
-  const addHabit = async () => {
-    const newHabit = {
-      title: "New Habit",
-      description: "This is a new habit description",
-    };
-
+  const handleAddHabit = async (newHabit) => {
     try {
       const response = await fetch(`${BACKEND_URL}/habits`, {
         method: "POST",
@@ -52,7 +47,7 @@ const HomePage = () => {
     }
   };
 
-  const deleteHabit = async (id) => {
+  const handleDeleteHabit = async (id) => {
     try {
       const response = await fetch(`${BACKEND_URL}/habits/${id}`, {
         method: "DELETE",
@@ -72,10 +67,10 @@ const HomePage = () => {
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
       <h1 className="mb-4 text-3xl font-bold text-gray-800">Habit Tracker</h1>
       <button
-        onClick={addHabit}
-        className="px-4 py-2 mb-4 text-white bg-green-500 rounded-md"
+        onClick={() => setIsModalOpen(true)}
+        className="px-4 py-2 mb-4 text-white bg-blue-700 rounded-lg hover:bg-blue-800"
       >
-        Add Habit
+        Add New Habit
       </button>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {habits.map((habit) => (
@@ -84,10 +79,17 @@ const HomePage = () => {
             id={habit._id}
             title={habit.title}
             description={habit.description}
-            onDelete={deleteHabit}
+            onDelete={handleDeleteHabit} // Pass delete handler
           />
         ))}
       </div>
+
+      {/* Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleAddHabit}
+      />
     </div>
   );
 };
